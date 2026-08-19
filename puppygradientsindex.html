@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puppy Text Gradients</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#131219;
+    --panel:#1c1a24;
+    --panel-2:#242230;
+    --border:rgba(255,255,255,0.09);
+    --text:#eeecf5;
+    --text-dim:#948fa8;
+    --text-dim-2:#6b6680;
+    --accent-1:#ff6b6b;
+    --accent-2:#ffd93d;
+    --accent-3:#6bcfff;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,107,107,0.08), transparent 40%),
+      radial-gradient(circle at 85% 10%, rgba(107,207,255,0.08), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:40px 24px 80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+  header{margin-bottom:36px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--text-dim-2);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(32px,5vw,52px);
+    font-weight:700;
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+    background-clip:text;-webkit-background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  }
+  .subtitle{color:var(--text-dim);font-size:15px;max-width:560px;line-height:1.5;}
+
+  .grid{
+    display:grid;
+    grid-template-columns: 380px 1fr;
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width:860px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .panel + .panel{margin-top:18px;}
+  .panel h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:.02em;
+    margin:0 0 14px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .panel h2 .num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--text-dim-2);
+    border:1px solid var(--border);
+    padding:1px 6px;border-radius:4px;
+  }
+
+  textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:12px;
+    resize:vertical;
+    min-height:90px;
+  }
+  textarea:focus, input:focus, select:focus, button:focus-visible{
+    outline:2px solid var(--accent-3);outline-offset:1px;
+  }
+
+  .stops{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .stop-row{
+    display:flex;align-items:center;gap:5px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 7px;
+    transition:border-color .12s, opacity .12s, transform .12s;
+  }
+  .stop-row.dragging{opacity:.4;}
+  .stop-row.drag-over{border-color:var(--accent-3);}
+  .drag-handle{
+    flex-shrink:0;width:16px;height:30px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-dim-2);cursor:grab;
+    touch-action:none;
+  }
+  .drag-handle:active{cursor:grabbing;}
+  .swatch{
+    width:30px;height:30px;border-radius:6px;border:1px solid var(--border);
+    padding:0;background:none;cursor:pointer;
+  }
+  .hex-input{
+    flex:1;min-width:44px;background:transparent;border:none;color:var(--text);
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:4px 2px;
+  }
+  .icon-btn{
+    width:26px;height:26px;border-radius:6px;border:1px solid var(--border);
+    background:var(--panel);color:var(--text-dim);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;flex-shrink:0;
+    font-size:12px;
+  }
+  .icon-btn:hover{color:var(--text);border-color:var(--text-dim);}
+  .icon-btn:disabled{opacity:.3;cursor:not-allowed;}
+  .icon-btn.remove:hover{color:var(--accent-1);}
+
+  .row-actions{display:flex;gap:8px;margin-top:4px;}
+  .btn{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+    padding:8px 14px;border-radius:7px;border:1px solid var(--border);
+    background:var(--panel-2);color:var(--text);cursor:pointer;
+  }
+  .btn:hover{border-color:var(--text-dim);}
+  .btn.primary{
+    background:linear-gradient(90deg,var(--accent-1),var(--accent-2));
+    color:#181017;border:none;
+  }
+
+  label.field{display:block;margin-bottom:0;}
+  select{
+    width:100%;background:var(--panel-2);border:1px solid var(--border);
+    color:var(--text);border-radius:8px;padding:9px 10px;font-family:'Inter',sans-serif;font-size:13px;
+  }
+
+  .preview-box{
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    padding:32px 26px;
+    min-height:140px;
+    font-size:26px;
+    line-height:1.5;
+    word-break:break-word;
+    white-space:pre-wrap;
+    transition:background .2s;
+  }
+  .preview-box.mono{font-family:'JetBrains Mono',monospace;font-size:19px;}
+  .bg-toggles{display:flex;gap:8px;margin:0 0 14px;}
+  .bg-swatch{
+    width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+  }
+  .bg-swatch.active{border-color:var(--accent-3);}
+
+  .output-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .output-code{
+    width:100%;min-height:160px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:8px;
+    color:var(--text-dim);font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    padding:12px;line-height:1.6;resize:vertical;
+  }
+  .note{
+    font-size:12px;color:var(--text-dim-2);margin-top:8px;line-height:1.5;
+  }
+  .copied-tag{
+    color:var(--accent-3);font-size:12px;font-family:'JetBrains Mono',monospace;
+    opacity:0;transition:opacity .2s;
+  }
+  .copied-tag.show{opacity:1;}
+  .mono-check{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--text-dim);}
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+@media screen and (max-width: 48em){
+	.controls{min-width:0;}
+	body{padding:1rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow logo"><a class="logo-icon" href="https://github.com/PuppyWasTaken/puppypaths">
+      <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M74 211.658C99.0457 142.251 155.836 87.1314 226.717 108.765C276.177 123.861 255.428 151.992 274.648 170.486C285.492 178.829 314.933 167.631 322.548 178.047C329.28 187.259 324.416 204.065 322.548 215.097C315.179 258.597 265.313 265 223.065 265" stroke="#000000" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M325 194C321.518 187.392 313.572 181.214 304 176" stroke="#000000" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M132.242 181.22C129.728 194.908 90.9731 288.143 131.095 296.086C205.608 306.73 196.665 221.971 196.665 169" stroke="#000000" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M234 168V173" stroke="#000000" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </a>Puppy Gradients </div>
+    <h1 id="mainTitle">Puppy's Gradient Text Maker</h1>
+    <p class="subtitle">Like this tool? Consider <a style="color: white;" href="https://www.paypal.com/ncp/payment/3Z959Z3MLHM26">tipping me</a></p>
+  </header>
+
+  <div class="grid">
+    <div class="controls">
+      <div class="panel">
+        <h2>Message <span class="num" id="charCount">0 chars</span></h2>
+        <textarea id="textInput" rows="4"></textarea>
+      </div>
+
+      <div class="panel">
+        <h2>Colors <span class="num" id="stopCount">3 stops</span></h2>
+        <div class="stops" id="stopsList"></div>
+        <div class="row-actions">
+          <button class="btn" id="addStop" type="button">+ Add color</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Fade type</h2>
+        <label class="field">
+          <select id="fadeType">
+            <option value="horizontal">Horizontal (across whole message)</option>
+            <option value="horizontal-line">Horizontal (reset each line)</option>
+            <option value="vertical">Vertical (one color per line)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="panel">
+        <h2>Output format</h2>
+        <label class="field">
+          <select id="outputFormat">
+            <option value="css">CSS gradient (background-clip: text)</option>
+            <option value="html">HTML (span tags, per character)</option>
+            <option value="hex">Hex code + character list</option>
+            <option value="bbcode">BBCode / forum [color] tags</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="preview-col">
+      <div class="panel">
+        <h2>Live preview</h2>
+        <div class="bg-toggles" id="bgToggles"></div>
+        <div class="preview-box" id="previewBox"></div>
+        <label class="mono-check">
+          <input type="checkbox" id="monoToggle"> Monospace preview
+        </label>
+      </div>
+
+      <div class="panel">
+        <div class="output-head">
+          <h2 style="margin:0;">Output code</h2>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="copied-tag" id="copiedTag">Copied ✓</span>
+            <button class="btn primary" id="copyBtn" type="button">Copy</button>
+          </div>
+        </div>
+        <textarea class="output-code" id="outputCode" readonly></textarea>
+        <div class="note" id="outputNote"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- state ----------
+let stops = ['#ff6b6b', '#ffd93d', '#6bcfff'];
+const eyedropSupported = 'EyeDropper' in window;
+
+// ---------- color helpers ----------
+function clampHex(h){
+  h = (h || '').trim();
+  if(!h.startsWith('#')) h = '#' + h;
+  return /^#([0-9a-fA-F]{6})$/.test(h) ? h.toLowerCase() : null;
+}
+function hexToRgb(hex){
+  const v = hex.replace('#','');
+  return {
+    r: parseInt(v.substring(0,2),16),
+    g: parseInt(v.substring(2,4),16),
+    b: parseInt(v.substring(4,6),16)
+  };
+}
+function rgbToHex(r,g,b){
+  const c = n => n.toString(16).padStart(2,'0');
+  return '#' + c(r) + c(g) + c(b);
+}
+function interpolate(t){
+  const n = stops.length;
+  if(n === 1) return stops[0];
+  const scaled = Math.min(Math.max(t,0),1) * (n-1);
+  const i = Math.floor(scaled);
+  const i2 = Math.min(i+1, n-1);
+  const localT = scaled - i;
+  const c1 = hexToRgb(stops[i]), c2 = hexToRgb(stops[i2]);
+  const r = Math.round(c1.r + (c2.r-c1.r)*localT);
+  const g = Math.round(c1.g + (c2.g-c1.g)*localT);
+  const b = Math.round(c1.b + (c2.b-c1.b)*localT);
+  return rgbToHex(r,g,b);
+}
+
+// ---------- special-character-safe splitting ----------
+function getGraphemes(str){
+  if(window.Intl && Intl.Segmenter){
+    const seg = new Intl.Segmenter(undefined, {granularity:'grapheme'});
+    return Array.from(seg.segment(str), s => s.segment);
+  }
+  return Array.from(str); // still surrogate-pair safe
+}
+function escapeHtml(ch){
+  return ch.replace(/[&<>"']/g, m => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[m]));
+}
+
+// ---------- build colored structure ----------
+function buildStructure(text, fadeType){
+  const lines = text.split('\n').map(getGraphemes);
+  if(fadeType === 'horizontal'){
+    const total = lines.reduce((a,l) => a + l.length, 0);
+    let count = 0;
+    return lines.map(line => line.map(ch => {
+      const t = total <= 1 ? 0 : count/(total-1);
+      count++;
+      return {ch, color: interpolate(t)};
+    }));
+  }
+  if(fadeType === 'horizontal-line'){
+    return lines.map(line => {
+      const total = line.length;
+      return line.map((ch,i) => ({ch, color: interpolate(total<=1?0:i/(total-1))}));
+    });
+  }
+  const totalLines = lines.length;
+  return lines.map((line, li) => {
+    const color = interpolate(totalLines<=1?0:li/(totalLines-1));
+    return line.map(ch => ({ch, color}));
+  });
+}
+
+// ---------- renderers ----------
+function renderPreview(structure){
+  const box = document.getElementById('previewBox');
+  box.innerHTML = '';
+  const isEmpty = structure.every(l => l.length === 0);
+  if(isEmpty){
+    box.innerHTML = '<span style="color:var(--text-dim-2)">Your gradient text will appear here…</span>';
+    return;
+  }
+  structure.forEach((line, li) => {
+    line.forEach(({ch,color}) => {
+      const span = document.createElement('span');
+      span.textContent = ch;
+      span.style.color = color;
+      box.appendChild(span);
+    });
+    if(li < structure.length-1) box.appendChild(document.createElement('br'));
+  });
+}
+function renderHtmlOutput(structure){
+  return structure.map(line =>
+    line.map(({ch,color}) => `<span style="color:${color}">${escapeHtml(ch)}</span>`).join('')
+  ).join('<br>\n');
+}
+function renderHexOutput(structure){
+  return structure.map(line =>
+    line.map(({ch,color}) => `${color}  ${ch === ' ' ? '(space)' : ch}`).join('\n')
+  ).join('\n');
+}
+function renderBBCodeOutput(structure){
+  return structure.map(line =>
+    line.map(({ch,color}) => `[color=${color}]${ch}[/color]`).join('')
+  ).join('\n');
+}
+function renderCssOutput(fadeType){
+  const angle = fadeType === 'vertical' ? '180deg' : '90deg';
+  const stopStr = stops.map((c,i) => `${c} ${Math.round(i/(stops.length-1)*100)}%`).join(', ');
+  return `.gradient-text {\n  background: linear-gradient(${angle}, ${stopStr});\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n}`;
+}
+
+// ---------- color stop rows ----------
+let dragSrcIndex = null;
+
+function renderStops(){
+  const list = document.getElementById('stopsList');
+  list.innerHTML = '';
+  stops.forEach((hex, i) => {
+    const row = document.createElement('div');
+    row.className = 'stop-row';
+    row.draggable = true;
+
+    row.addEventListener('dragstart', e => {
+      dragSrcIndex = i;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(i));
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      [...list.children].forEach(r => r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      const srcIndex = dragSrcIndex;
+      const targetIndex = i;
+      if(srcIndex === null || srcIndex === targetIndex) return;
+      const [moved] = stops.splice(srcIndex, 1);
+      stops.splice(targetIndex, 0, moved);
+      dragSrcIndex = null;
+      renderStops(); update();
+    });
+
+    const handle = document.createElement('div');
+    handle.className = 'drag-handle';
+    handle.title = 'Drag to reorder';
+    handle.innerHTML = '<svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor"><circle cx="2" cy="2" r="1.5"></circle><circle cx="8" cy="2" r="1.5"></circle><circle cx="2" cy="8" r="1.5"></circle><circle cx="8" cy="8" r="1.5"></circle><circle cx="2" cy="14" r="1.5"></circle><circle cx="8" cy="14" r="1.5"></circle></svg>';
+
+    const swatch = document.createElement('input');
+    swatch.type = 'color'; swatch.className = 'swatch'; swatch.value = hex;
+    swatch.title = 'Open color picker';
+    swatch.addEventListener('input', e => { stops[i] = e.target.value; renderStops(); update(); });
+
+    const hexInput = document.createElement('input');
+    hexInput.type = 'text'; hexInput.className = 'hex-input'; hexInput.value = hex;
+    hexInput.spellcheck = false;
+    hexInput.addEventListener('change', e => {
+      const v = clampHex(e.target.value);
+      if(v) stops[i] = v;
+      renderStops(); update();
+    });
+
+    const eyeBtn = document.createElement('button');
+    eyeBtn.type = 'button'; eyeBtn.className = 'icon-btn';
+    eyeBtn.title = eyedropSupported
+      ? 'Pick a color from anywhere on screen'
+      : 'Eyedropper not supported in this browser — try Chrome or Edge on desktop';
+    eyeBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22l1-4 9.5-9.5"></path><path d="M17.5 3.5a2.12 2.12 0 0 1 3 3L17 10l-3-3z"></path><path d="M13.5 6.5l3 3"></path></svg>';
+    if(!eyedropSupported) eyeBtn.disabled = true;
+    eyeBtn.addEventListener('click', async () => {
+      if(!eyedropSupported) return;
+      try{
+        const ed = new EyeDropper();
+        const result = await ed.open();
+        stops[i] = result.sRGBHex;
+        renderStops(); update();
+      }catch(err){ /* user cancelled the pick */ }
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button'; removeBtn.className = 'icon-btn remove';
+    removeBtn.title = 'Remove color';
+    removeBtn.textContent = '×';
+    removeBtn.disabled = stops.length <= 2;
+    removeBtn.addEventListener('click', () => {
+      if(stops.length <= 2) return;
+      stops.splice(i,1);
+      renderStops(); update();
+    });
+
+    const moveUpBtn = document.createElement('button');
+    moveUpBtn.type = 'button'; moveUpBtn.className = 'icon-btn';
+    moveUpBtn.title = 'Move up'; moveUpBtn.textContent = '↑';
+    moveUpBtn.disabled = i === 0;
+    moveUpBtn.addEventListener('click', () => {
+      if(i === 0) return;
+      [stops[i-1], stops[i]] = [stops[i], stops[i-1]];
+      renderStops(); update();
+    });
+
+    const moveDownBtn = document.createElement('button');
+    moveDownBtn.type = 'button'; moveDownBtn.className = 'icon-btn';
+    moveDownBtn.title = 'Move down'; moveDownBtn.textContent = '↓';
+    moveDownBtn.disabled = i === stops.length - 1;
+    moveDownBtn.addEventListener('click', () => {
+      if(i === stops.length - 1) return;
+      [stops[i+1], stops[i]] = [stops[i], stops[i+1]];
+      renderStops(); update();
+    });
+
+    row.append(handle, swatch, hexInput, moveUpBtn, moveDownBtn, eyeBtn, removeBtn);
+    list.appendChild(row);
+  });
+  document.getElementById('stopCount').textContent = stops.length + ' stops';
+}
+
+document.getElementById('addStop').addEventListener('click', () => {
+  if(stops.length >= 12) return;
+  stops.push('#ffffff');
+  renderStops(); update();
+});
+
+// ---------- background toggles ----------
+const bgOptions = [
+  {label:'Dark', value:'#151319'},
+  {label:'Light', value:'#f5f3ef'},
+  {label:'Slate', value:'#2c2c34'},
+  {label:'Deep Violet', value:'#1D0C31'}
+];
+let activeBg = bgOptions[0].value;
+function renderBgToggles(){
+  const wrap = document.getElementById('bgToggles');
+  wrap.innerHTML = '';
+  bgOptions.forEach(opt => {
+    const sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'bg-swatch' + (opt.value === activeBg ? ' active' : '');
+    sw.style.background = opt.value;
+    sw.title = opt.label;
+    sw.addEventListener('click', () => {
+      activeBg = opt.value;
+      document.getElementById('previewBox').style.background = activeBg;
+      renderBgToggles();
+    });
+    wrap.appendChild(sw);
+  });
+}
+
+// ---------- main update ----------
+function update(){
+  const text = document.getElementById('textInput').value;
+  const fadeType = document.getElementById('fadeType').value;
+  const format = document.getElementById('outputFormat').value;
+
+  document.getElementById('charCount').textContent = getGraphemes(text.replace(/\n/g,'')).length + ' chars';
+
+  const structure = buildStructure(text, fadeType);
+  renderPreview(structure);
+
+  const outBox = document.getElementById('outputCode');
+  const note = document.getElementById('outputNote');
+  if(format === 'css'){
+    outBox.value = renderCssOutput(fadeType);
+    note.textContent = fadeType === 'horizontal-line'
+      ? "Note: a CSS gradient can't reset per line — this shows one gradient across the whole block. Use HTML or Hex output for an exact per-line match."
+      : 'Copy and paste this output.';
+  } else if(format === 'html'){
+    outBox.value = renderHtmlOutput(structure);
+    note.textContent = 'Paste directly where raw HTML is supported. Emoji, accents, and symbols are handled per full character and safely escaped.';
+  } else if(format === 'hex'){
+    outBox.value = renderHexOutput(structure);
+    note.textContent = 'One hex color per character, in order — handy for manually recreating the fade elsewhere.';
+  } else {
+    outBox.value = renderBBCodeOutput(structure);
+    note.textContent = 'Standard [color] BBCode, works on most forums.';
+  }
+
+  document.getElementById('mainTitle').style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
+}
+
+// ---------- copy ----------
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  const outBox = document.getElementById('outputCode');
+  try{
+    await navigator.clipboard.writeText(outBox.value);
+  }catch(e){
+    outBox.select(); document.execCommand('copy');
+  }
+  const tag = document.getElementById('copiedTag');
+  tag.classList.add('show');
+  setTimeout(() => tag.classList.remove('show'), 1400);
+});
+
+// ---------- mono toggle ----------
+document.getElementById('monoToggle').addEventListener('change', e => {
+  document.getElementById('previewBox').classList.toggle('mono', e.target.checked);
+});
+
+// ---------- wire up ----------
+document.getElementById('textInput').addEventListener('input', update);
+document.getElementById('fadeType').addEventListener('change', update);
+document.getElementById('outputFormat').addEventListener('change', update);
+
+// ---------- init ----------
+document.getElementById('textInput').value = 'Type your text! ✦ 特殊字符 and emojis 🌈 are supported!';
+renderStops();
+renderBgToggles();
+document.getElementById('previewBox').style.background = activeBg;
+update();
+</script>
+</body>
+</html>
