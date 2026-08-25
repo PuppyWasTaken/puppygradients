@@ -261,6 +261,18 @@
             <option value="bbcode">BBCode / forum [color] tags</option>
           </select>
         </label>
+        <label class="field" id="fontSizeField" style="margin-top:10px;display:none;">
+          <span style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;">Font size (applied to every &lt;span&gt;)</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="number" id="fontSizeInput" min="1" max="500" value="16" style="width:80px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-family:'Inter',sans-serif;font-size:13px;">
+            <select id="fontSizeUnit" style="width:auto;flex:1;">
+              <option value="px">px</option>
+              <option value="pt">pt</option>
+              <option value="em">em</option>
+              <option value="%">%</option>
+            </select>
+          </div>
+        </label>
       </div>
     </div>
 
@@ -384,10 +396,17 @@ function renderPreview(structure){
     if(li < structure.length-1) box.appendChild(document.createElement('br'));
   });
 }
-function renderHtmlOutput(structure){
+function renderHtmlOutput(structure, fontSize){
+  const sizeStyle = fontSize ? `font-size:${fontSize};` : '';
   return structure.map(line =>
-    line.map(({ch,color}) => `<span style="color:${color}">${escapeHtml(ch)}</span>`).join('')
+    line.map(({ch,color}) => `<span style="color:${color};${sizeStyle}">${escapeHtml(ch)}</span>`).join('')
   ).join('<br>\n');
+}
+function getFontSizeValue(){
+  const raw = parseFloat(document.getElementById('fontSizeInput').value);
+  const unit = document.getElementById('fontSizeUnit').value;
+  if(isNaN(raw) || raw <= 0) return null;
+  return raw + unit;
 }
 function renderHexOutput(structure){
   return structure.map(line =>
@@ -560,6 +579,8 @@ function update(){
   const structure = buildStructure(text, fadeType);
   renderPreview(structure);
 
+  document.getElementById('fontSizeField').style.display = format === 'html' ? 'block' : 'none';
+
   const outBox = document.getElementById('outputCode');
   const note = document.getElementById('outputNote');
   if(format === 'css'){
@@ -568,7 +589,7 @@ function update(){
       ? "Note: a CSS gradient can't reset per line — this shows one gradient across the whole block. Use HTML or Hex output for an exact per-line match."
       : 'Copy and paste this output.';
   } else if(format === 'html'){
-    outBox.value = renderHtmlOutput(structure);
+    outBox.value = renderHtmlOutput(structure, getFontSizeValue());
     note.textContent = 'Paste directly where raw HTML is supported. Emoji, accents, and symbols are handled per full character and safely escaped.';
   } else if(format === 'hex'){
     outBox.value = renderHexOutput(structure);
@@ -603,6 +624,8 @@ document.getElementById('monoToggle').addEventListener('change', e => {
 document.getElementById('textInput').addEventListener('input', update);
 document.getElementById('fadeType').addEventListener('change', update);
 document.getElementById('outputFormat').addEventListener('change', update);
+document.getElementById('fontSizeInput').addEventListener('input', update);
+document.getElementById('fontSizeUnit').addEventListener('change', update);
 
 // ---------- init ----------
 document.getElementById('textInput').value = 'Type your text! ✦ 特殊字符 and emojis 🌈 are supported!';
