@@ -577,6 +577,13 @@ function update(){
   document.getElementById('charCount').textContent = getGraphemes(text.replace(/\n/g,'')).length + ' chars';
 
   const structure = buildStructure(text, fadeType);
+  const previewBox = document.getElementById('previewBox');
+  if(format === 'html'){
+    const fs = getFontSizeValue();
+    previewBox.style.fontSize = fs || '';
+  } else {
+    previewBox.style.fontSize = '';
+  }
   renderPreview(structure);
 
   document.getElementById('fontSizeField').style.display = format === 'html' ? 'block' : 'none';
