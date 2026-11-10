@@ -156,6 +156,7 @@
   }
 
   .preview-box{
+    background:#1D0C31;
     border-radius:var(--radius);
     border:1px solid var(--border);
     padding:32px 26px;
@@ -172,6 +173,9 @@
     width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;
   }
   .bg-swatch.active{border-color:var(--accent-3);}
+  .bg-custom{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .bg-custom label{font-size:12px;color:var(--text-dim);}
+  .bg-custom .hex-input{flex:0 1 100px;background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:7px 8px;}
 
   .output-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .output-code{
@@ -280,6 +284,11 @@
       <div class="panel">
         <h2>Live preview</h2>
         <div class="bg-toggles" id="bgToggles"></div>
+        <div class="bg-custom">
+          <label for="bgColorInput">Background colour</label>
+          <input type="color" class="swatch" id="bgColorInput" value="#1d0c31" aria-label="Choose preview background colour">
+          <input type="text" class="hex-input" id="bgHexInput" value="#1D0C31" aria-label="Preview background hex colour" spellcheck="false" maxlength="7">
+        </div>
         <div class="preview-box" id="previewBox"></div>
         <label class="mono-check">
           <input type="checkbox" id="monoToggle"> Monospace preview
@@ -549,24 +558,44 @@ const bgOptions = [
   {label:'Slate', value:'#2c2c34'},
   {label:'Deep Violet', value:'#1D0C31'}
 ];
-let activeBg = bgOptions[0].value;
+let activeBg = '#1d0c31';
+function setPreviewBackground(value){
+  const hex = clampHex(value);
+  if(!hex) return;
+  activeBg = hex;
+  document.getElementById('previewBox').style.background = activeBg;
+  document.getElementById('bgColorInput').value = activeBg;
+  document.getElementById('bgHexInput').value = activeBg.toUpperCase();
+  renderBgToggles();
+}
 function renderBgToggles(){
   const wrap = document.getElementById('bgToggles');
   wrap.innerHTML = '';
   bgOptions.forEach(opt => {
     const sw = document.createElement('button');
     sw.type = 'button';
-    sw.className = 'bg-swatch' + (opt.value === activeBg ? ' active' : '');
+    const selected = opt.value.toLowerCase() === activeBg;
+    sw.className = 'bg-swatch' + (selected ? ' active' : '');
     sw.style.background = opt.value;
     sw.title = opt.label;
+    sw.setAttribute('aria-label', opt.label + ' preview background');
+    sw.setAttribute('aria-pressed', String(selected));
     sw.addEventListener('click', () => {
-      activeBg = opt.value;
-      document.getElementById('previewBox').style.background = activeBg;
-      renderBgToggles();
+      setPreviewBackground(opt.value);
     });
     wrap.appendChild(sw);
   });
 }
+
+document.getElementById('bgColorInput').addEventListener('input', e => {
+  setPreviewBackground(e.target.value);
+});
+document.getElementById('bgHexInput').addEventListener('input', e => {
+  if(clampHex(e.target.value)) setPreviewBackground(e.target.value);
+});
+document.getElementById('bgHexInput').addEventListener('change', e => {
+  setPreviewBackground(clampHex(e.target.value) || activeBg);
+});
 
 // ---------- main update ----------
 function update(){
@@ -637,8 +666,7 @@ document.getElementById('fontSizeUnit').addEventListener('change', update);
 // ---------- init ----------
 document.getElementById('textInput').value = 'Type your text! ✦ 特殊字符 and emojis 🌈 are supported!';
 renderStops();
-renderBgToggles();
-document.getElementById('previewBox').style.background = activeBg;
+setPreviewBackground(activeBg);
 update();
 </script>
 </body>
